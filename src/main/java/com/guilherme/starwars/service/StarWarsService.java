@@ -1,47 +1,74 @@
 package com.guilherme.starwars.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.guilherme.starwars.model.Message;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.guilherme.starwars.model.Film;
+import com.guilherme.starwars.model.People;
+import com.guilherme.starwars.model.Specie;
 
 public class StarWarsService {
 
-	public List<String> getCharater(String id) throws Exception {
-		try {
-			URL url = new URL("https://swapi.co/api/people/" + id + "/?format=json");
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setRequestProperty("User-Agent", "swapi");
-			con.setRequestMethod("GET");
-			int code = con.getResponseCode();
+	public List<String> getCharater(int filmId, int characterId) throws Exception {
+		People character = getCharacter(characterId);
 
-			if (code == 200) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-				
-				String inputLine;
-				StringBuffer content = new StringBuffer();
-				while ((inputLine = in.readLine()) != null) {
-				    content.append(inputLine);
-				}
-				in.close();
-				
-				List<String> characters = new ArrayList<String>();
+		Film film = getFilm(filmId);
 
-				return characters;
-			} else {
-				con.disconnect();
-				throw new Exception(Message.BAD_REQUEST.getMessage());
+		Specie specie = getSpecie(character.getSpecies().get(0));
+
+		List<People> peoples = getCharacters(specie.getPeople());
+
+		List<String> characters = new ArrayList<String>();
+
+		for (People p : peoples) {
+			if (p.getFilms().contains(film.getUrl())) {
+				characters.add(p.getName());
 			}
-		} catch (MalformedURLException e) {
-			throw new Exception(Message.BAD_REQUEST.getMessage());
-		} catch (IOException e) {
-			throw new Exception(Message.BAD_REQUEST.getMessage());
 		}
+
+		return characters;
+	}
+
+	private People getCharacter(int id) throws Exception {
+		ServiceConnector connector = new ServiceConnector();
+		String p = connector.connect(id, "people");
+
+		People people = new ObjectMapper().readValue(p, People.class);
+
+		return people;
+	}
+
+	private Film getFilm(int id) throws Exception {
+		ServiceConnector connector = new ServiceConnector();
+		String f = connector.connect(id, "films");
+
+		Film film = new ObjectMapper().readValue(f, Film.class);
+
+		return film;
+	}
+
+	private Specie getSpecie(String url) throws Exception {
+		ServiceConnector connector = new ServiceConnector();
+		String s = connector.connect(url);
+
+		Specie specie = new ObjectMapper().readValue(s, Specie.class);
+
+		return specie;
+	}
+
+	private List<People> getCharacters(List<String> urls) throws Exception {
+		List<People> peoples = new ArrayList<People>();
+
+		for (String u : urls) {
+			ServiceConnector connector = new ServiceConnector();
+			String p = connector.connect(u);
+
+			People people = new ObjectMapper().readValue(p, People.class);
+
+			peoples.add(people);
+		}
+
+		return peoples;
 	}
 }

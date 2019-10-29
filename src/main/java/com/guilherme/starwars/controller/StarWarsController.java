@@ -29,7 +29,7 @@ public class StarWarsController {
 	public ResponseEntity<?> getCharaters(@RequestParam("film_id") int filmId,
 			@RequestParam("character_id") int characterId) {
 		try {
-			List<String> characters = service.getCharater("1");
+			List<String> characters = service.getCharater(filmId, characterId);
 
 			return !characters.isEmpty() ? new ResponseEntity<List<String>>(characters, HttpStatus.OK)
 					: new ResponseEntity<ErrorMessage>(new ErrorMessage(Message.NOT_FOUND.getMessage()),
