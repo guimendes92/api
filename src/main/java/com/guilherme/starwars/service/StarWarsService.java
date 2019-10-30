@@ -21,9 +21,11 @@ public class StarWarsService {
 
 		List<String> characters = new ArrayList<String>();
 
-		for (People p : peoples) {
-			if (p.getFilms().contains(film.getUrl())) {
-				characters.add(p.getName());
+		if (character.getFilms().contains(film.getUrl())) {
+			for (People p : peoples) {
+				if (p.getFilms().contains(film.getUrl())) {
+					characters.add(p.getName());
+				}
 			}
 		}
 
